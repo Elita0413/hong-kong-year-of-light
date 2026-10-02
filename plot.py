@@ -20,6 +20,7 @@ from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 
 # ============================================================
@@ -41,10 +42,21 @@ LABEL_RADIUS = 6.35
 
 # Colours
 BACKGROUND = "#F5F1E8"
-BAR_COLOR = "#C8643E"
+COLOR_STOPS = [
+    "#F2D7A7",
+    "#E9A05B",
+    "#D9784E",
+    "#B94F3A",
+    "#7F2F2A",
+]
 TEXT_COLOR = "#1D1D1B"
 SECONDARY_TEXT = "#746C62"
 CENTRE_COLOR = "#F5F1E8"
+
+SOLAR_CMAP = mpl.colors.LinearSegmentedColormap.from_list(
+    "solar_light",
+    COLOR_STOPS
+)
 
 # Typography
 TITLE_SIZE = 26
@@ -157,15 +169,19 @@ def draw_day(ax, day_of_year, value, maximum):
     # DRAW
     # --------------------------------------------------------
 
+    color = SOLAR_CMAP(
+        value / maximum
+    )
+
     ax.bar(
         angle,
         height,
         width=(
-            2 * math.pi / 365 * 0.78
+        2 * math.pi / 365 * 0.78
         ),
         bottom=INNER_RADIUS,
-        color=BAR_COLOR,
-        alpha=0.78,
+        color=color,
+        alpha=0.82,
         linewidth=0,
         align="edge",
     )
