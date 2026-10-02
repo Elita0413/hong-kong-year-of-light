@@ -361,49 +361,20 @@ def main():
     )
 
     # ========================================================
-    # CENTRE TYPOGRAPHY
+    # CENTRE INFORMATION
     # ========================================================
 
-    # IMPORTANT:
-    # In polar coordinates:
-    #
-    #     ax.text(theta, radius, text)
-    #
-    # So theta = 0, radius = 0
-    # means the exact centre.
-
     ax.text(
         0,
-        0.12,
-        "A YEAR",
-        ha="center",
-        va="center",
-        fontsize=CENTRE_MAIN_SIZE,
-        fontweight="bold",
-        color=TEXT_COLOR,
-        zorder=20
-    )
-
-    ax.text(
         0,
-        -0.28,
-        "OF LIGHT",
+        "HONG KONG · 2025\n365 DAILY VALUES",
         ha="center",
         va="center",
-        fontsize=CENTRE_SECONDARY_SIZE,
+        multialignment="center",
+        fontsize=9,
         fontweight="medium",
         color=TEXT_COLOR,
-        zorder=20
-    )
-
-    ax.text(
-        0,
-        -0.67,
-        "HONG KONG · 2025",
-        ha="center",
-        va="center",
-        fontsize=SMALL_SIZE,
-        color=SECONDARY_TEXT,
+        linespacing=1.6,
         zorder=20
     )
 
