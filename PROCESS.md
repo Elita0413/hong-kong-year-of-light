@@ -10,4 +10,4 @@ I kept the circular mapping of the year because it turned the daily data into a 
 
 ## Rejected
 
-I rejected the first linear chart because although it was statistically clear, it did not communicate my interest in experiencing a year as a cycle. I also rejected [WRITE YOUR ACTUAL EXAMPLE HERE] because [WRITE WHY AFTER TESTING].
+I rejected the first multi-colour radial chart because the colours were not tied to a specific variable, which weakened the relationship between the data and the visual form. The rainbow-like palette also made the image feel more decorative and fragmented. I replaced it with a limited solar-inspired colour scale so that both length and colour communicate the variation in solar radiation.
