@@ -1,15 +1,13 @@
 # Process
 
-<!-- Same as assignment 1, same honesty. Which tools you used and for what; one
-thing you kept and why it was good; one thing you rejected and why it was wrong.
-"I did not use any" is fine if it is true.
-
-If a model wrote most of plot.py, which is likely and allowed, the interesting part
-is what you had to correct: did it invent a column name, use pandas where a list
-would do, silently drop the rows it could not parse? -->
-
 ## Tools
+
+I used VS Code and GitHub for development, Python and matplotlib for the visualisation, and ChatGPT to help me understand the NASA POWER API and generate an initial version of the plotting code.
 
 ## Kept
 
+I kept the circular mapping of the year because it turned the daily data into a continuous visual cycle. The first version used a radial bar for each day, which made the seasonal pattern visible without introducing another data variable.
+
 ## Rejected
+
+I rejected the first linear chart because although it was statistically clear, it did not communicate my interest in experiencing a year as a cycle. I also rejected [WRITE YOUR ACTUAL EXAMPLE HERE] because [WRITE WHY AFTER TESTING].

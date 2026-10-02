@@ -3,6 +3,17 @@
 # dependencies = ["matplotlib"]
 # ///
 
+"""
+A Year of Light
+
+NASA POWER daily solar-radiation data
+for Hong Kong, 2025.
+
+Visual logic:
+    day of year       -> angular position
+    solar radiation   -> radial length
+"""
+
 import json
 import math
 from datetime import datetime
@@ -11,28 +22,85 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
+# ============================================================
+# PROJECT SETTINGS
+# ============================================================
+
 FILE = "nasa-power-hong-kong-solar-2025.json"
 PICTURE = "year-of-light.png"
 
+
+# ============================================================
+# VISUAL SETTINGS
+# ============================================================
+
+# Composition
+INNER_RADIUS = 1.65
+MAX_LENGTH = 4.7
+LABEL_RADIUS = 6.35
+
+# Colours
+BACKGROUND = "#F5F1E8"
+BAR_COLOR = "#C8643E"
+TEXT_COLOR = "#1D1D1B"
+SECONDARY_TEXT = "#746C62"
+CENTRE_COLOR = "#F5F1E8"
+
+# Typography
+TITLE_SIZE = 26
+CENTRE_MAIN_SIZE = 22
+CENTRE_SECONDARY_SIZE = 13
+MONTH_SIZE = 8.5
+SMALL_SIZE = 8
+
+
+# ============================================================
+# PATHS
+# ============================================================
+
 HERE = Path(__file__).parent
+
 DATA = HERE / "data" / FILE
 OUT = HERE / "out"
 
 
+# ============================================================
+# DATA LOADING
+# ============================================================
+
 def load_data(path):
+    """
+    Read NASA POWER JSON data.
+
+    Returns:
+        [
+            (day_of_year, solar_radiation),
+            ...
+        ]
+    """
+
     content = json.loads(
         path.read_text(encoding="utf-8")
     )
 
-    values = content["properties"]["parameter"]["ALLSKY_SFC_SW_DWN"]
+    values = (
+        content[
+            "properties"
+        ][
+            "parameter"
+        ][
+            "ALLSKY_SFC_SW_DWN"
+        ]
+    )
 
     rows = []
 
     for date_text, raw_value in sorted(values.items()):
+
         value = float(raw_value)
 
-        # NASA POWER uses -999 as its missing-data value.
-        if value == -999:
+        # Ignore NASA POWER missing/invalid negative values.
+        if value < 0:
             continue
 
         date = datetime.strptime(
@@ -43,14 +111,32 @@ def load_data(path):
         day_of_year = date.timetuple().tm_yday
 
         rows.append(
-            (day_of_year, value)
+            (
+                day_of_year,
+                value
+            )
         )
 
     return rows
 
 
+# ============================================================
+# DRAW ONE DAY
+# ============================================================
+
 def draw_day(ax, day_of_year, value, maximum):
-    """Turn one day's solar radiation into one radial bar."""
+    """
+    Draw one day as one radial mark.
+
+    Data mapping:
+
+        day_of_year -> angle
+        value       -> length
+    """
+
+    # --------------------------------------------------------
+    # DAY -> ANGLE
+    # --------------------------------------------------------
 
     angle = (
         2 * math.pi
@@ -58,35 +144,82 @@ def draw_day(ax, day_of_year, value, maximum):
         / 365
     )
 
-    inner_radius = 1.0
+    # --------------------------------------------------------
+    # SOLAR RADIATION -> LENGTH
+    # --------------------------------------------------------
 
     height = (
         value / maximum
-        * 5.0
+        * MAX_LENGTH
     )
+
+    # --------------------------------------------------------
+    # DRAW
+    # --------------------------------------------------------
 
     ax.bar(
         angle,
         height,
-        width=2 * math.pi / 365 * 0.82,
-        bottom=inner_radius,
-        alpha=0.8,
+        width=(
+            2 * math.pi / 365 * 0.78
+        ),
+        bottom=INNER_RADIUS,
+        color=BAR_COLOR,
+        alpha=0.78,
+        linewidth=0,
+        align="edge",
     )
 
 
+# ============================================================
+# MAIN
+# ============================================================
+
 def main():
+
+    # ========================================================
+    # LOAD DATA
+    # ========================================================
+
     rows = load_data(DATA)
 
-    print(f"{len(rows)} valid daily values")
-    print("First value:", rows[0])
-    print("Value type:", type(rows[0][1]))
+    if not rows:
+        raise ValueError(
+            "No valid data was found."
+        )
+
+    print(
+        f"Loaded {len(rows)} valid daily values."
+    )
+
+    print(
+        f"First value: {rows[0]}"
+    )
+
+    print(
+        f"Value type: {type(rows[0][1])}"
+    )
+
+    minimum = min(
+        value for _, value in rows
+    )
 
     maximum = max(
         value for _, value in rows
     )
 
+    print(
+        f"Solar radiation range: "
+        f"{minimum:.2f}–{maximum:.2f} MJ/m²/day"
+    )
+
+    # ========================================================
+    # FIGURE
+    # ========================================================
+
     fig = plt.figure(
-        figsize=(10, 10)
+        figsize=(10, 10),
+        facecolor=BACKGROUND
     )
 
     ax = fig.add_subplot(
@@ -94,7 +227,13 @@ def main():
         projection="polar"
     )
 
-    # Start January at the top.
+    ax.set_facecolor(BACKGROUND)
+
+    # ========================================================
+    # POLAR ORIENTATION
+    # ========================================================
+
+    # January begins at the top.
     ax.set_theta_offset(
         math.pi / 2
     )
@@ -102,7 +241,12 @@ def main():
     # Move clockwise.
     ax.set_theta_direction(-1)
 
+    # ========================================================
+    # DRAW ALL DAYS
+    # ========================================================
+
     for day, value in rows:
+
         draw_day(
             ax,
             day,
@@ -110,56 +254,222 @@ def main():
             maximum
         )
 
-    # Month labels.
+    # ========================================================
+    # COMPOSITION
+    # ========================================================
+
+    ax.set_ylim(
+        0,
+        LABEL_RADIUS + 0.65
+    )
+
+    # Remove default polar chart elements.
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    ax.spines["polar"].set_visible(False)
+
+    # ========================================================
+    # MONTH LABELS
+    # ========================================================
+
     month_starts = [
-        1, 32, 60, 91,
-        121, 152, 182, 213,
-        244, 274, 305, 335
+        1,
+        32,
+        60,
+        91,
+        121,
+        152,
+        182,
+        213,
+        244,
+        274,
+        305,
+        335
     ]
 
     month_names = [
-        "JAN", "FEB", "MAR", "APR",
-        "MAY", "JUN", "JUL", "AUG",
-        "SEP", "OCT", "NOV", "DEC"
+        "JAN",
+        "FEB",
+        "MAR",
+        "APR",
+        "MAY",
+        "JUN",
+        "JUL",
+        "AUG",
+        "SEP",
+        "OCT",
+        "NOV",
+        "DEC"
     ]
 
     month_angles = [
-        2 * math.pi * (day - 1) / 365
+        2 * math.pi
+        * (day - 1)
+        / 365
         for day in month_starts
     ]
 
-    ax.set_xticks(month_angles)
-    ax.set_xticklabels(month_names)
+    for angle, name in zip(
+        month_angles,
+        month_names
+    ):
 
-    ax.set_yticks([])
+        ax.text(
+            angle,
+            LABEL_RADIUS,
+            name,
+            ha="center",
+            va="center",
+            fontsize=MONTH_SIZE,
+            color=SECONDARY_TEXT,
+            fontweight="medium"
+        )
 
-    ax.set_title(
-        "A Year of Light — Hong Kong, 2025",
-        pad=30
+    # ========================================================
+    # CENTRE DISK
+    # ========================================================
+
+    # Cover the inside of the radial chart with a clean disk.
+    inner_circle = plt.Circle(
+        (0, 0),
+        INNER_RADIUS - 0.02,
+        transform=ax.transData._b,
+        facecolor=CENTRE_COLOR,
+        edgecolor="none",
+        zorder=10
+    )
+
+    ax.add_artist(
+        inner_circle
+    )
+
+    # ========================================================
+    # CENTRE TYPOGRAPHY
+    # ========================================================
+
+    # IMPORTANT:
+    # In polar coordinates:
+    #
+    #     ax.text(theta, radius, text)
+    #
+    # So theta = 0, radius = 0
+    # means the exact centre.
+
+    ax.text(
+        0,
+        0.12,
+        "A YEAR",
+        ha="center",
+        va="center",
+        fontsize=CENTRE_MAIN_SIZE,
+        fontweight="bold",
+        color=TEXT_COLOR,
+        zorder=20
     )
 
     ax.text(
         0,
-        0,
-        "SOLAR\nRADIATION",
+        -0.28,
+        "OF LIGHT",
         ha="center",
-        va="center"
+        va="center",
+        fontsize=CENTRE_SECONDARY_SIZE,
+        fontweight="medium",
+        color=TEXT_COLOR,
+        zorder=20
     )
 
-    OUT.mkdir(exist_ok=True)
+    ax.text(
+        0,
+        -0.67,
+        "HONG KONG · 2025",
+        ha="center",
+        va="center",
+        fontsize=SMALL_SIZE,
+        color=SECONDARY_TEXT,
+        zorder=20
+    )
+
+    # ========================================================
+    # TOP TITLE
+    # ========================================================
+
+    # Instead of putting a second large title directly
+    # above the chart, create a smaller editorial header.
+
+    fig.text(
+        0.08,
+        0.94,
+        "A YEAR OF LIGHT",
+        ha="left",
+        va="center",
+        fontsize=TITLE_SIZE,
+        fontweight="bold",
+        color=TEXT_COLOR
+    )
+
+    fig.text(
+        0.08,
+        0.913,
+        "SURFACE SOLAR RADIATION · NASA POWER",
+        ha="left",
+        va="center",
+        fontsize=SMALL_SIZE,
+        color=SECONDARY_TEXT
+    )
+
+    # ========================================================
+    # FOOTER
+    # ========================================================
+
+    fig.text(
+        0.08,
+        0.045,
+        "365 DAILY VALUES",
+        ha="left",
+        va="center",
+        fontsize=SMALL_SIZE,
+        color=SECONDARY_TEXT
+    )
+
+    fig.text(
+        0.92,
+        0.045,
+        "MJ/m²/day",
+        ha="right",
+        va="center",
+        fontsize=SMALL_SIZE,
+        color=SECONDARY_TEXT
+    )
+
+    # ========================================================
+    # OUTPUT
+    # ========================================================
+
+    OUT.mkdir(
+        exist_ok=True
+    )
+
+    output_path = OUT / PICTURE
 
     fig.savefig(
-        OUT / PICTURE,
+        output_path,
         dpi=200,
-        bbox_inches="tight"
+        bbox_inches="tight",
+        facecolor=BACKGROUND
     )
 
     print(
-        f"Saved out/{PICTURE}"
+        f"Saved: {output_path}"
     )
 
     plt.show()
 
+
+# ============================================================
+# RUN
+# ============================================================
 
 if __name__ == "__main__":
     main()
